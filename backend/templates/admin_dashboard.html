@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-3xl p-12 text-center">
+
+    <h2 class="text-4xl font-extrabold text-indigo-600 mb-10">
+        📊 Admin Analytics Dashboard
+    </h2>
+
+    <div class="grid md:grid-cols-3 gap-8 mb-12">
+
+        <div class="bg-indigo-100 p-8 rounded-2xl shadow-lg">
+            <h3 class="font-bold text-lg">Total Users</h3>
+            <p class="text-4xl font-extrabold text-indigo-600 mt-4">
+                {{ total_users }}
+            </p>
+        </div>
+
+        <div class="bg-green-100 p-8 rounded-2xl shadow-lg">
+            <h3 class="font-bold text-lg">Average Confidence</h3>
+            <p class="text-4xl font-extrabold text-green-600 mt-4">
+                {{ avg_confidence }}%
+            </p>
+        </div>
+
+        <div class="bg-purple-100 p-8 rounded-2xl shadow-lg">
+            <h3 class="font-bold text-lg">Top Role</h3>
+            <p class="text-2xl font-extrabold text-purple-600 mt-4">
+                {{ role_counts | dictsort(by='value') | last | first }}
+            </p>
+        </div>
+
+    </div>
+
+    <div class="max-w-xl mx-auto">
+        <canvas id="roleChart"></canvas>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+new Chart(document.getElementById('roleChart'), {
+    type: 'bar',
+    data: {
+        labels: ['AI Engineer', 'Full Stack Developer', 'Data Analyst'],
+        datasets: [{
+            label: 'Role Distribution',
+            data: [
+                {{ role_counts["AI Engineer"] }},
+                {{ role_counts["Full Stack Developer"] }},
+                {{ role_counts["Data Analyst"] }}
+            ],
+            backgroundColor: [
+                '#4f46e5',
+                '#10b981',
+                '#8b5cf6'
+            ]
+        }]
+    },
+    options: {
+        animation: { duration: 1500 }
+    }
+});
+</script>
+
+{% endblock %}

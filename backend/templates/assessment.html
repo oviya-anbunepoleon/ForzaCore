@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-10">
+
+    <h2 class="text-3xl font-bold text-indigo-600 text-center mb-8">
+        Career Assessment 🧠
+    </h2>
+
+    <form action="/assessment-submit" method="post" class="space-y-6">
+
+        {% set questions = [
+            "You enjoy solving logical problems.",
+            "You like building creative projects.",
+            "You prefer working with numbers.",
+            "You enjoy designing interfaces.",
+            "You like analyzing patterns.",
+            "You enjoy writing structured code.",
+            "You think analytically under pressure.",
+            "You enjoy brainstorming ideas.",
+            "You prefer structured problem solving."
+        ] %}
+
+        {% for i in range(1,10) %}
+        <div class="bg-indigo-50 p-6 rounded-xl shadow">
+            <p class="font-semibold mb-4">
+                {{ questions[i-1] }}
+            </p>
+
+            <div class="space-y-2">
+                <label>
+                    <input type="radio" name="q{{i}}" value="analytical" required>
+                    Agree
+                </label>
+                <br>
+                <label>
+                    <input type="radio" name="q{{i}}" value="creative">
+                    Disagree
+                </label>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="text-center pt-6">
+            <button type="submit"
+                    class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition font-semibold">
+                Continue
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

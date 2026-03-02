@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto bg-white shadow-lg p-8 rounded-xl">
+
+    <h2 class="text-2xl font-bold mb-6 text-indigo-600">
+        Communication Assessment
+    </h2>
+
+    <form method="post" action="/communication-result">
+
+        <!-- TEXT QUESTION -->
+        <div class="mb-6">
+            <label class="block font-semibold mb-2">
+                1. How would you handle a conflict in a team?
+            </label>
+            <textarea name="text_answer"
+                      class="w-full border p-3 rounded-lg"
+                      rows="4"
+                      required></textarea>
+        </div>
+
+        <!-- MCQ QUESTION -->
+        <div class="mb-6">
+            <label class="block font-semibold mb-2">
+                2. What is active listening?
+            </label>
+
+            <div>
+                <input type="radio" name="mcq_answer" value="1" required>
+                Paying full attention to the speaker
+            </div>
+
+            <div>
+                <input type="radio" name="mcq_answer" value="2">
+                Waiting for your turn to speak
+            </div>
+        </div>
+
+        <button type="submit"
+                class="bg-indigo-600 text-white px-6 py-2 rounded-lg">
+            Continue to Coding →
+        </button>
+
+    </form>
+</div>
+
+{% endblock %}

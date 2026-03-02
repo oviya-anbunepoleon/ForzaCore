@@ -1,0 +1,64 @@
+c{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto bg-white shadow-2xl rounded-3xl p-12 text-center">
+
+    <h2 class="text-4xl font-extrabold text-indigo-600 mb-6 animate-pulse">
+        🎉 Assessment Completed Successfully!
+    </h2>
+
+    <h3 class="text-5xl font-extrabold text-purple-600 mb-6">
+        {{ role }}
+    </h3>
+
+    <!-- Confidence -->
+    <p class="text-xl mb-2">
+        Confidence Score:
+        <span class="font-bold text-indigo-600">{{ confidence }}%</span>
+    </p>
+
+    <div class="w-3/4 mx-auto bg-gray-200 rounded-full h-2 mb-8">
+        <div class="bg-indigo-600 h-2 rounded-full transition-all duration-1000"
+             style="width: {{ confidence }}%;">
+        </div>
+    </div>
+
+    <!-- XP -->
+    <p class="text-xl mb-2">
+        XP Earned:
+        <span class="font-bold text-green-600">{{ xp }}</span>
+    </p>
+
+    <!-- Badge -->
+    <p class="text-2xl font-bold mt-4 animate-pulse">
+        🏅 {{ badge }}
+    </p>
+
+    <!-- Buttons -->
+    <div class="mt-10 flex justify-center gap-6 flex-wrap">
+
+        <a href="/dashboard"
+           class="bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition">
+           🏠 Back to Dashboard
+        </a>
+
+        <a href="/download"
+           class="bg-green-600 text-white px-8 py-3 rounded-xl hover:bg-green-700 transition">
+           📄 Download PDF Report
+        </a>
+
+    </div>
+
+</div>
+
+<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+confetti({
+    particleCount: 150,
+    spread: 90,
+    origin: { y: 0.6 }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-3xl p-12 text-center">
+
+    <h2 class="text-4xl font-extrabold text-indigo-600 mb-8 animate-pulse">
+        🚀 AI Career Intelligence Report
+    </h2>
+
+    <h3 class="text-5xl font-extrabold text-purple-600 mb-8">
+        {{ role }}
+    </h3>
+
+    <!-- 🔥 Animated Circular Confidence Gauge -->
+    <div class="flex justify-center mb-14">
+        <div class="relative w-44 h-44">
+            <svg class="w-44 h-44 transform -rotate-90">
+                <circle cx="88" cy="88" r="75"
+                    stroke="#e5e7eb"
+                    stroke-width="14"
+                    fill="transparent"/>
+                <circle id="progressCircle"
+                    cx="88" cy="88" r="75"
+                    stroke="#4f46e5"
+                    stroke-width="14"
+                    fill="transparent"
+                    stroke-linecap="round"
+                    stroke-dasharray="471"
+                    stroke-dashoffset="471"/>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center text-4xl font-extrabold text-indigo-600">
+                {{ confidence }}%
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔥 5D Radar Chart -->
+    <div class="max-w-xl mx-auto mb-14">
+        <canvas id="skillChart"></canvas>
+    </div>
+
+    <!-- 🧠 AI Insight Engine -->
+    <div class="bg-indigo-50 p-8 rounded-2xl shadow-lg mb-10 text-left">
+        <h4 class="text-xl font-bold mb-4">🧠 AI Insight Engine</h4>
+
+        <p>
+            Your strongest dimension is
+            <span class="font-bold text-indigo-600">
+                {% set max_value = [analytical, communication, creative, coding, problem_solving]|max %}
+                {% if max_value == analytical %}Analytical Thinking
+                {% elif max_value == communication %}Communication
+                {% elif max_value == creative %}Creativity
+                {% elif max_value == coding %}Coding
+                {% else %}Problem Solving{% endif %}
+            </span>.
+        </p>
+
+        <p class="mt-3">
+            To maximize your growth trajectory, focus on structured practice in weaker dimensions
+            and apply your strengths in real-world projects.
+        </p>
+    </div>
+
+    <!-- Why + Focus -->
+    <div class="grid md:grid-cols-2 gap-8 text-left mb-12">
+
+        <div class="bg-indigo-100 p-8 rounded-2xl shadow-lg">
+            <h4 class="font-bold text-xl mb-3">💡 Why This Role?</h4>
+            <p>{{ why }}</p>
+        </div>
+
+        <div class="bg-green-100 p-8 rounded-2xl shadow-lg">
+            <h4 class="font-bold text-xl mb-3">📈 Areas To Focus</h4>
+            <p>{{ focus }}</p>
+        </div>
+
+    </div>
+
+    <div>
+        <a href="/level?role={{ role }}&level=1"
+           class="bg-indigo-600 text-white px-10 py-4 rounded-2xl text-lg hover:bg-indigo-700 transition">
+           🚀 Start Level 1
+        </a>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const ctx = document.getElementById('skillChart');
+
+new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: ['Analytical', 'Communication', 'Creativity', 'Coding', 'Problem Solving'],
+        datasets: [{
+            label: 'AI Skill Strength',
+            data: [
+                {{ analytical }},
+                {{ communication }},
+                {{ creative }},
+                {{ coding }},
+                {{ problem_solving }}
+            ],
+            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+            borderColor: '#4f46e5',
+            borderWidth: 2,
+            pointBackgroundColor: '#4f46e5'
+        }]
+    },
+    options: {
+        animation: {
+            duration: 1500
+        },
+        scales: {
+            r: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    }
+});
+
+
+// 🔥 Animated Confidence Ring
+const circle = document.getElementById("progressCircle");
+const radius = 75;
+const circumference = 2 * Math.PI * radius;
+circle.style.strokeDasharray = circumference;
+
+const confidenceValue = {{ confidence }};
+const offset = circumference - (confidenceValue / 100) * circumference;
+
+setTimeout(() => {
+    circle.style.transition = "stroke-dashoffset 1.5s ease";
+    circle.style.strokeDashoffset = offset;
+}, 300);
+
+</script>
+
+{% endblock %}

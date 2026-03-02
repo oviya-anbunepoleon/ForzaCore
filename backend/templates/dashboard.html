@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-3xl p-12">
+
+    <h2 class="text-4xl font-extrabold text-indigo-600 mb-8">
+        👋 Welcome, {{ username }}
+    </h2>
+
+    <div class="grid md:grid-cols-3 gap-8 text-center">
+
+        <!-- Role Card -->
+        <div class="bg-indigo-100 p-8 rounded-2xl shadow-lg">
+            <h3 class="font-bold text-lg mb-3">Assigned Role</h3>
+            <p class="text-3xl font-extrabold text-purple-600 animate-pulse">
+                {{ role }}
+            </p>
+        </div>
+
+        <!-- XP Card -->
+        <div class="bg-green-100 p-8 rounded-2xl shadow-lg">
+            <h3 class="font-bold text-lg mb-3">XP Earned</h3>
+            <p id="xpCounter" class="text-4xl font-extrabold text-green-700">
+                0
+            </p>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="bg-yellow-100 p-8 rounded-2xl shadow-lg">
+            <h3 class="font-bold text-lg mb-4">Progress</h3>
+
+            <div class="w-3/4 mx-auto bg-gray-200 rounded-full h-2">
+                <div class="bg-indigo-600 h-2 rounded-full transition-all duration-1000"
+                     style="width: {{ xp if xp <= 100 else 100 }}%;">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="mt-12 text-center flex justify-center gap-6 flex-wrap">
+
+        <a href="/assessment"
+           class="bg-indigo-600 text-white px-8 py-3 rounded-xl hover:bg-indigo-700 transition">
+           🔁 Retake Assessment
+        </a>
+
+        {% if role != "Not Assigned" %}
+        <a href="/level?role={{ role }}&level=1"
+           class="bg-purple-600 text-white px-8 py-3 rounded-xl hover:bg-purple-700 transition">
+           🚀 Continue Learning
+        </a>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- XP Animated Counter -->
+<script>
+let xp = {{ xp }};
+let counter = document.getElementById("xpCounter");
+let current = 0;
+
+let interval = setInterval(() => {
+    current += 5;
+    if (current >= xp) {
+        current = xp;
+        clearInterval(interval);
+    }
+    counter.innerText = current;
+}, 20);
+</script>
+
+{% endblock %}

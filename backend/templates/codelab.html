@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-900 text-white py-12 px-6">
+
+    <div class="max-w-5xl mx-auto bg-gray-800 rounded-3xl shadow-2xl p-10">
+
+        <!-- Header -->
+        <div class="mb-10 text-center">
+            <h2 class="text-4xl font-bold text-indigo-400">
+                🚀 CodeLab – Corporate Coding Arena
+            </h2>
+            <p class="text-gray-400 mt-2">
+                Simulate real-world interview coding environment.
+            </p>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="mb-8">
+            <label class="block text-lg font-semibold mb-3 text-indigo-300">
+                Select Difficulty
+            </label>
+            <select id="difficultySelect"
+                    class="w-full p-4 bg-gray-700 border border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 text-white">
+                <option value="easy">Easy (Practice Mode)</option>
+                <option value="medium">Medium (Timed – 20 min)</option>
+                <option value="hard">Hard (Timed – 30 min)</option>
+            </select>
+        </div>
+
+        <!-- Timer -->
+        <div class="mb-6 hidden" id="timerContainer">
+            <p class="text-lg font-semibold text-red-400">
+                ⏳ Time Remaining: <span id="timer">00:00</span>
+            </p>
+        </div>
+
+        <!-- Start Button -->
+        <div class="mb-10 text-center">
+            <button id="startBtn"
+                    type="button"
+                    class="bg-indigo-600 hover:bg-indigo-700 px-8 py-3 rounded-full text-lg font-semibold shadow-lg transition transform hover:scale-105">
+                Start Coding
+            </button>
+        </div>
+
+        <!-- FORM -->
+        <form method="post" action="/codelab-submit" class="space-y-8">
+
+            <input type="hidden" name="difficulty" id="difficultyInput">
+
+            <!-- Question -->
+            <div>
+                <label class="block text-lg font-semibold mb-3 text-indigo-300">
+                    Choose Question
+                </label>
+                <select name="question_id"
+                        class="w-full p-4 bg-gray-700 border border-gray-600 rounded-xl text-white">
+                    {% for level, qs in questions.items() %}
+                        {% for q in qs %}
+                            <option value="{{ q.id }}">
+                                {{ q.question }}
+                            </option>
+                        {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Code Area -->
+            <div>
+                <label class="block text-lg font-semibold mb-3 text-indigo-300">
+                    Write Your Solution
+                </label>
+                <textarea name="code_answer"
+                          id="codeArea"
+                          rows="12"
+                          disabled
+                          required
+                          class="w-full p-5 bg-gray-900 border border-gray-700 rounded-2xl font-mono text-sm focus:ring-2 focus:ring-indigo-500"
+                          placeholder="Click Start to begin..."></textarea>
+            </div>
+
+            <!-- Submit -->
+            <div class="text-center pt-6">
+                <button type="submit"
+                        class="bg-green-600 hover:bg-green-700 px-10 py-3 rounded-full text-lg font-semibold transition transform hover:scale-105">
+                    Submit Solution
+                </button>
+            </div>
+
+        </form>
+
+        {% if feedback %}
+        <div class="mt-10 p-6 bg-indigo-900 rounded-xl border border-indigo-500">
+            <h3 class="font-semibold text-indigo-300 mb-2">Evaluation Feedback</h3>
+            <p class="text-gray-300">{{ feedback }}</p>
+        </div>
+        {% endif %}
+
+    </div>
+
+</div>
+
+<!-- Learning Resources -->
+<div class="mt-16 border-t border-gray-700 pt-10">
+
+    <h3 class="text-2xl font-bold text-indigo-400 mb-6 text-center">
+        📚 Coding Resources & Practice Platforms
+    </h3>
+
+    <div class="grid md:grid-cols-3 gap-8 text-sm">
+
+        <!-- Practice Platforms -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <h4 class="font-semibold text-indigo-300 mb-3">💻 Practice Platforms</h4>
+            <ul class="space-y-2 text-gray-400">
+                <li><a href="https://leetcode.com" target="_blank" class="hover:text-white">LeetCode</a></li>
+                <li><a href="https://www.codechef.com" target="_blank" class="hover:text-white">CodeChef</a></li>
+                <li><a href="https://www.hackerrank.com" target="_blank" class="hover:text-white">HackerRank</a></li>
+                <li><a href="https://codeforces.com" target="_blank" class="hover:text-white">Codeforces</a></li>
+            </ul>
+        </div>
+
+        <!-- Online Compilers -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <h4 class="font-semibold text-indigo-300 mb-3">⚙ Online Compilers</h4>
+            <ul class="space-y-2 text-gray-400">
+                <li><a href="https://replit.com" target="_blank" class="hover:text-white">Replit</a></li>
+                <li><a href="https://www.onlinegdb.com" target="_blank" class="hover:text-white">OnlineGDB</a></li>
+                <li><a href="https://www.programiz.com/python-programming/online-compiler" target="_blank" class="hover:text-white">Programiz Python Compiler</a></li>
+            </ul>
+        </div>
+
+        <!-- YouTube Prep -->
+        <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
+            <h4 class="font-semibold text-indigo-300 mb-3">🎥 Interview Prep Channels</h4>
+            <ul class="space-y-2 text-gray-400">
+                <li>
+                    <a href="https://www.youtube.com/results?search_query=abdul+bari+algorithms"
+                        target="_blank"
+                        class="hover:text-white">
+                        Abdul Bari (Algorithms)
+                    </a>
+               </li>
+                <li><a href="https://www.youtube.com/c/KunalKushwaha" target="_blank" class="hover:text-white">Kunal Kushwaha</a></li>
+                <li><a href="https://www.youtube.com/c/TakeUForward" target="_blank" class="hover:text-white">Take U Forward</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    let timeMap = {
+        easy: 0,
+        medium: 1200,
+        hard: 1800
+    };
+
+    let timerInterval;
+    let remainingTime = 0;
+    let started = false;
+
+    const startBtn = document.getElementById("startBtn");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const difficultyInput = document.getElementById("difficultyInput");
+    const codeArea = document.getElementById("codeArea");
+    const timerContainer = document.getElementById("timerContainer");
+    const timerDisplay = document.getElementById("timer");
+
+    function startTimer(seconds) {
+        remainingTime = seconds;
+        timerInterval = setInterval(function () {
+
+            let minutes = Math.floor(remainingTime / 60);
+            let secondsLeft = remainingTime % 60;
+
+            timerDisplay.innerText =
+                String(minutes).padStart(2, '0') + ":" +
+                String(secondsLeft).padStart(2, '0');
+
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+            }
+
+            remainingTime--;
+        }, 1000);
+    }
+
+    startBtn.addEventListener("click", function () {
+        if (started) return;
+
+        let selected = difficultySelect.value;
+        difficultyInput.value = selected;
+
+        codeArea.disabled = false;
+        codeArea.focus();
+
+        if (timeMap[selected] > 0) {
+            timerContainer.classList.remove("hidden");
+            startTimer(timeMap[selected]);
+        }
+
+        startBtn.innerText = "Running...";
+        startBtn.classList.add("opacity-50");
+        started = true;
+    });
+
+});
+</script>
+
+{% endblock %}
