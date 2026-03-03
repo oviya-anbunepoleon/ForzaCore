@@ -7,8 +7,13 @@ def generate_ai_report(
     problem_solving
 ):
 
+<<<<<<< HEAD
     return f"""
     🚀 Career Intelligence Report
+=======
+# 🔥 Paste your OpenRouter key directly for stability
+API_KEY = ""
+>>>>>>> c36ae46ead5c2e0151b3f8f8b9318229590f2766
 
     Role: {role}
 
@@ -37,6 +42,15 @@ def generate_ai_report(
     - Real-time Chat Application
     - Data Dashboard
 
-    🎯 Final Advice:
-    Stay consistent. Skill stacking wins hackathons.
-    """
+
+
+=======
+Keep it structured, clear, and motivating.
+"""
+
+        response = llm.invoke(prompt)
+        return response.content
+
+    except Exception as e:
+        print("AI ERROR:", e)
+        return "AI service temporarily unavailable."
