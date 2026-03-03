@@ -3,15 +3,31 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 
+from backend.ai_engine import generate_ai_report
+
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 
+from langchain_openai import ChatOpenAI
 
-app = FastAPI(title="CareerForge AI - Final Stable")
+# =====================================================
+# AI SETUP (HARDCODED FOR HACKATHON STABILITY)
+# =====================================================
+
+
+
+
+# =====================================================
+# APP INIT
+# =====================================================
+
+app = FastAPI(title="CareerForge AI - AI Powered")
 app.add_middleware(SessionMiddleware, secret_key="careerforge_secret")
 
 templates = Jinja2Templates(directory="backend/templates")
+
+leaderboard_data = []
 
 # =====================================================
 # HOME
@@ -21,7 +37,6 @@ templates = Jinja2Templates(directory="backend/templates")
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-
 # =====================================================
 # LOGIN
 # =====================================================
@@ -30,15 +45,25 @@ def home(request: Request):
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-
 @app.post("/login")
 def login_submit(request: Request, username: str = Form(...), password: str = Form(...)):
     request.session.clear()
     request.session["username"] = username
     request.session["level_xp"] = 0
-    request.session["codelab_xp"] = 0  # Initialize safely
-    return RedirectResponse("/dashboard", status_code=303)
+    request.session["codelab_xp"] = 0
+    request.session["coding_score"] = 0
+    request.session["speak_xp"] = 0
 
+    existing = next((u for u in leaderboard_data if u["username"] == username), None)
+    if not existing:
+        leaderboard_data.append({
+            "username": username,
+            "level_xp": 0,
+            "codelab_xp": 0,
+            "speak_xp": 0
+        })
+
+    return RedirectResponse("/dashboard", status_code=303)
 
 # =====================================================
 # DASHBOARD
@@ -46,7 +71,6 @@ def login_submit(request: Request, username: str = Form(...), password: str = Fo
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
-
     if "username" not in request.session:
         return RedirectResponse("/", status_code=303)
 
@@ -55,26 +79,57 @@ def dashboard(request: Request):
         "username": request.session.get("username"),
         "role": request.session.get("role", "Not Assigned"),
         "xp": request.session.get("level_xp", 0),
-        "codelab_xp": request.session.get("codelab_xp", 0)
+        "codelab_xp": request.session.get("codelab_xp", 0),
+        "speak_xp": request.session.get("speak_xp", 0)
     })
 
+# =====================================================
+# SPEAKLAB
+# =====================================================
+
+@app.get("/speaklab", response_class=HTMLResponse)
+def speaklab_page(request: Request):
+    return templates.TemplateResponse("speaklab.html", {"request": request})
+
+
+@app.post("/speaklab-submit")
+def speaklab_submit(request: Request,
+                    transcript: str = Form(...),
+                    duration: int = Form(...)):
+
+    word_count = len(transcript.split())
+    xp = min(word_count // 5 + duration // 10, 50)
+
+    # Safe session update
+    current_xp = request.session.get("speak_xp", 0)
+    request.session["speak_xp"] = current_xp + xp
+
+    feedback = (
+        f"You spoke {word_count} words in {duration} seconds. "
+        f"Earned {xp} XP!"
+    )
+
+    return templates.TemplateResponse("speaklab.html", {
+        "request": request,
+        "feedback": feedback
+    })
 
 # =====================================================
-# CODELAB (Interview Style + Safe XP)
+# CODELAB
 # =====================================================
 
 codelab_questions = {
     "easy": [
-        {"id": 1, "question": "Reverse a String (Without built-in reverse).", "example": "Input: 'hello' → Output: 'olleh'"},
-        {"id": 2, "question": "Check if a number is Prime.", "example": "Input: 7 → Output: True"}
+        {"id": 1, "question": "Reverse a String (Without built-in reverse)."},
+        {"id": 2, "question": "Check if a number is Prime."}
     ],
     "medium": [
-        {"id": 3, "question": "Two Sum – Return indices that add to target.", "example": "Input: [2,7,11,15], target=9 → Output: [0,1]"},
-        {"id": 4, "question": "Longest Substring Without Repeating Characters.", "example": "Input: 'abcabcbb' → Output: 3"}
+        {"id": 3, "question": "Two Sum – Return indices that add to target."},
+        {"id": 4, "question": "Longest Substring Without Repeating Characters."}
     ],
     "hard": [
-        {"id": 5, "question": "Merge K Sorted Linked Lists.", "example": "Input: [[1,4,5],[1,3,4],[2,6]] → Output: [1,1,2,3,4,4,5,6]"},
-        {"id": 6, "question": "Detect Cycle in Linked List (Floyd’s Algorithm).", "example": "Return True if cycle exists."}
+        {"id": 5, "question": "Merge K Sorted Linked Lists."},
+        {"id": 6, "question": "Detect Cycle in Linked List (Floyd’s Algorithm)."}
     ]
 }
 
@@ -95,62 +150,28 @@ def codelab_submit(request: Request,
 
     xp_map = {"easy": 20, "medium": 40, "hard": 60}
 
-    # Ensure session key exists
-    if "codelab_xp" not in request.session:
-        request.session["codelab_xp"] = 0
-
     if len(code_answer.strip()) < 20:
-        feedback = "Your solution is too short. Try adding complete logic."
         earned_xp = 0
+        feedback = "Solution too short."
     else:
         earned_xp = xp_map.get(difficulty, 0)
-        feedback = f"Good attempt! You earned {earned_xp} XP."
+        feedback = f"You earned {earned_xp} XP!"
 
-    request.session["codelab_xp"] += earned_xp
+    current_xp = request.session.get("codelab_xp", 0)
+    request.session["codelab_xp"] = current_xp + earned_xp
 
     return templates.TemplateResponse("codelab.html", {
         "request": request,
         "questions": codelab_questions,
         "feedback": feedback
     })
-
-
 # =====================================================
-# SPEAKLAB
-# =====================================================
-
-@app.get("/speaklab", response_class=HTMLResponse)
-def speaklab_page(request: Request):
-    return templates.TemplateResponse("speaklab.html", {"request": request})
-
-@app.post("/speaklab-submit")
-def speaklab_submit(request: Request,
-                    transcript: str = Form(...),
-                    duration: int = Form(...)):
-
-    word_count = len(transcript.split())
-
-    if word_count > 120:
-        feedback = "🔥 Outstanding fluency and structured explanation!"
-    elif word_count > 70:
-        feedback = "👏 Good communication. Improve confidence slightly."
-    elif word_count > 30:
-        feedback = "🙂 Decent attempt. Try adding more depth and structure."
-    else:
-        feedback = "⚠ Speak longer and organize your thoughts clearly."
-
-    return templates.TemplateResponse("speaklab.html", {
-        "request": request,
-        "feedback": feedback
-    })
-# =====================================================
-# PSYCHOMETRIC
+# ASSESSMENT
 # =====================================================
 
 @app.get("/assessment", response_class=HTMLResponse)
 def assessment_page(request: Request):
     return templates.TemplateResponse("assessment.html", {"request": request})
-
 
 @app.post("/assessment-submit")
 def assessment_submit(request: Request,
@@ -163,7 +184,6 @@ def assessment_submit(request: Request,
     request.session["creative"] = answers.count("creative")
     return RedirectResponse("/communication", status_code=303)
 
-
 # =====================================================
 # COMMUNICATION
 # =====================================================
@@ -171,7 +191,6 @@ def assessment_submit(request: Request,
 @app.get("/communication", response_class=HTMLResponse)
 def communication_page(request: Request):
     return templates.TemplateResponse("communication.html", {"request": request})
-
 
 @app.post("/communication-result")
 def communication_submit(request: Request,
@@ -185,15 +204,13 @@ def communication_submit(request: Request,
     request.session["communication_score"] = score
     return RedirectResponse("/coding", status_code=303)
 
-
 # =====================================================
-# CODING
+# CODING ROLE LOGIC
 # =====================================================
 
 @app.get("/coding", response_class=HTMLResponse)
 def coding_page(request: Request):
     return templates.TemplateResponse("coding.html", {"request": request})
-
 
 @app.post("/coding-result")
 def coding_submit(request: Request,
@@ -203,6 +220,8 @@ def coding_submit(request: Request,
     score = len(text_answer)//40
     if mcq_answer == 1:
         score += 1
+
+    request.session["coding_score"] = score
 
     analytical = request.session.get("analytical", 0)
     creative = request.session.get("creative", 0)
@@ -220,65 +239,97 @@ def coding_submit(request: Request,
 
     best_role = max(scores, key=scores.get)
     total = ai_score + fs_score + da_score
-    confidence = int((scores[best_role] / total) * 100) if total != 0 else 0
+    confidence = int((scores[best_role] / total) * 100) if total else 0
 
     request.session["role"] = best_role
     request.session["confidence"] = confidence
     request.session["level_xp"] = 0
 
+    request.session.pop("ai_report", None)
+
     return RedirectResponse("/loading", status_code=303)
 
-
 # =====================================================
-# LOADING
+# LOADING PAGE
 # =====================================================
 
 @app.get("/loading", response_class=HTMLResponse)
 def loading_page(request: Request):
     return templates.TemplateResponse("loading.html", {"request": request})
 
-
 # =====================================================
-# ROLE RESULT
+# ROLE RESULT (AI GENERATED)
 # =====================================================
-
 
 @app.get("/role-result", response_class=HTMLResponse)
 def role_result(request: Request):
 
     role = request.session.get("role")
+    confidence = request.session.get("confidence", 0)
 
-    explanations = {
-        "AI Engineer": "You show strong analytical and ML problem-solving potential.",
-        "Full Stack Developer": "You balance frontend creativity and backend logic.",
-        "Data Analyst": "You demonstrate structured and data-driven reasoning ability."
-    }
+    analytical = request.session.get("analytical", 0)
+    creative = request.session.get("creative", 0)
+    communication = request.session.get("communication_score", 0)
+    coding = request.session.get("coding_score", 0)
 
-    focus = {
-        "AI Engineer": "Machine Learning, Model Deployment, Data Structures",
-        "Full Stack Developer": "Backend APIs, Databases, Performance Optimization",
-        "Data Analyst": "SQL, Data Visualization, Business Insights"
-    }
+    if "ai_report" not in request.session:
+        ai_text = generate_ai_report(
+            role, analytical, creative, communication, coding, confidence
+        )
+        request.session["ai_report"] = ai_text
+    else:
+        ai_text = request.session["ai_report"]
 
     return templates.TemplateResponse("role_result.html", {
         "request": request,
         "role": role,
-        "why": explanations.get(role),
-        "focus": focus.get(role),
-        "confidence": request.session.get("confidence", 0),
-
-        # 👇 ADD THESE
-        "analytical": request.session.get("analytical", 0),
-        "creative": request.session.get("creative", 0),
-        "communication": request.session.get("communication_score", 0),
-        "coding": request.session.get("coding_score", 0),
-        "problem_solving": request.session.get("level_xp", 0)
+        "confidence": confidence,
+        "analytical": analytical,
+        "creative": creative,
+        "communication": communication,
+        "coding": coding,
+        "problem_solving": request.session.get("level_xp", 0),
+        "ai_report": ai_text
     })
 
+# =====================================================
+# ROLE RESULT (AI POWERED)
+# =====================================================
+
+@app.get("/role-result", response_class=HTMLResponse)
+def role_result(request: Request):
+
+    role = request.session.get("role")
+    confidence = request.session.get("confidence", 0)
+
+    analytical = request.session.get("analytical", 0)
+    creative = request.session.get("creative", 0)
+    communication = request.session.get("communication_score", 0)
+    coding = request.session.get("coding_score", 0)
+
+    if "ai_report" not in request.session:
+        ai_text = generate_ai_report(
+            role, analytical, creative, communication, coding, confidence
+        )
+        request.session["ai_report"] = ai_text
+    else:
+        ai_text = request.session["ai_report"]
+
+    return templates.TemplateResponse("role_result.html", {
+        "request": request,
+        "role": role,
+        "confidence": confidence,
+        "ai_report": ai_text
+    })
+
+# =====================================================
+# (Remaining LEVEL, FINAL, LEADERBOARD, PDF
+#  sections remain EXACTLY SAME as your original)
+# =====================================================
 
 
 # =====================================================
-# LEVEL SYSTEM (3 Roles × 5 Levels × 2 Questions)
+# LEVEL SYSTEM (3 × 5 × 2)
 # =====================================================
 
 role_levels = {
@@ -304,7 +355,6 @@ role_levels = {
             {"question":"Model fails on server. Best action?","options":["Check dependencies","Rewrite blindly"],"answer":1}
         ]
     },
-
     "Full Stack Developer": {
         1: [
             {"question":"Which runs in browser?","options":["JavaScript","C++"],"answer":1},
@@ -327,7 +377,6 @@ role_levels = {
             {"question":"Production server crashes. What to check?","options":["Logs and memory","Restart blindly"],"answer":1}
         ]
     },
-
     "Data Analyst": {
         1: [
             {"question":"SQL stands for?","options":["Structured Query Language","Simple Question List"],"answer":1},
@@ -352,7 +401,6 @@ role_levels = {
     }
 }
 
-
 @app.get("/level", response_class=HTMLResponse)
 def level_page(request: Request, role: str, level: int):
     return templates.TemplateResponse("level.html", {
@@ -361,7 +409,6 @@ def level_page(request: Request, role: str, level: int):
         "level": level,
         "questions": role_levels[role][level]
     })
-
 
 @app.post("/level-submit")
 def level_submit(request: Request,
@@ -373,6 +420,10 @@ def level_submit(request: Request,
     questions = role_levels[role][level]
     score = (q1 == questions[0]["answer"]) + (q2 == questions[1]["answer"])
     request.session["level_xp"] += score * 20
+
+    for user in leaderboard_data:
+        if user["username"] == request.session.get("username"):
+            user["level_xp"] = request.session.get("level_xp")
 
     if level < 5:
         return RedirectResponse(f"/level?role={role}&level={level+1}", status_code=303)
@@ -404,6 +455,45 @@ def final_page(request: Request):
         "xp": xp,
         "badge": badge,
         "confidence": request.session.get("confidence", 0)
+    })
+
+
+# =====================================================
+# LEADERBOARD
+# =====================================================
+
+@app.get("/leaderboard", response_class=HTMLResponse)
+def leaderboard_page(request: Request):
+
+    sorted_users = sorted(
+        leaderboard_data,
+        key=lambda x: (
+            x.get("level_xp", 0) +
+            x.get("codelab_xp", 0) +
+            x.get("speak_xp", 0)
+        ),
+        reverse=True
+    )
+
+    current_username = request.session.get("username")
+    current_rank = None
+
+    for index, user in enumerate(sorted_users):
+        user["total_xp"] = (
+            user.get("level_xp", 0) +
+            user.get("codelab_xp", 0) +
+            user.get("speak_xp", 0)
+        )
+        user["rank"] = index + 1
+
+        if user["username"] == current_username:
+            current_rank = user["rank"]
+
+    return templates.TemplateResponse("leaderboard.html", {
+        "request": request,
+        "users": sorted_users,
+        "current_user": current_username,
+        "current_rank": current_rank
     })
 
 

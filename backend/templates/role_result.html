@@ -11,7 +11,7 @@
         {{ role }}
     </h3>
 
-    <!-- 🔥 Animated Circular Confidence Gauge -->
+    <!-- Confidence Gauge -->
     <div class="flex justify-center mb-14">
         <div class="relative w-44 h-44">
             <svg class="w-44 h-44 transform -rotate-90">
@@ -34,48 +34,25 @@
         </div>
     </div>
 
-    <!-- 🔥 5D Radar Chart -->
+    <!-- Radar Chart -->
     <div class="max-w-xl mx-auto mb-14">
         <canvas id="skillChart"></canvas>
     </div>
 
-    <!-- 🧠 AI Insight Engine -->
-    <div class="bg-indigo-50 p-8 rounded-2xl shadow-lg mb-10 text-left">
-        <h4 class="text-xl font-bold mb-4">🧠 AI Insight Engine</h4>
+    <!-- 🔥 FULL AI REPORT SECTION -->
+    <div class="bg-indigo-50 p-8 rounded-2xl shadow-lg mb-12 text-left">
 
-        <p>
-            Your strongest dimension is
-            <span class="font-bold text-indigo-600">
-                {% set max_value = [analytical, communication, creative, coding, problem_solving]|max %}
-                {% if max_value == analytical %}Analytical Thinking
-                {% elif max_value == communication %}Communication
-                {% elif max_value == creative %}Creativity
-                {% elif max_value == coding %}Coding
-                {% else %}Problem Solving{% endif %}
-            </span>.
-        </p>
+        <h4 class="text-2xl font-bold mb-6 text-indigo-700">
+            🤖 AI Career Mentor Analysis
+        </h4>
 
-        <p class="mt-3">
-            To maximize your growth trajectory, focus on structured practice in weaker dimensions
-            and apply your strengths in real-world projects.
-        </p>
-    </div>
-
-    <!-- Why + Focus -->
-    <div class="grid md:grid-cols-2 gap-8 text-left mb-12">
-
-        <div class="bg-indigo-100 p-8 rounded-2xl shadow-lg">
-            <h4 class="font-bold text-xl mb-3">💡 Why This Role?</h4>
-            <p>{{ why }}</p>
-        </div>
-
-        <div class="bg-green-100 p-8 rounded-2xl shadow-lg">
-            <h4 class="font-bold text-xl mb-3">📈 Areas To Focus</h4>
-            <p>{{ focus }}</p>
+        <div class="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
+            {{ ai_report }}
         </div>
 
     </div>
 
+    <!-- Start Level -->
     <div>
         <a href="/level?role={{ role }}&level=1"
            class="bg-indigo-600 text-white px-10 py-4 rounded-2xl text-lg hover:bg-indigo-700 transition">
@@ -123,8 +100,7 @@ new Chart(ctx, {
     }
 });
 
-
-// 🔥 Animated Confidence Ring
+// Confidence Ring Animation
 const circle = document.getElementById("progressCircle");
 const radius = 75;
 const circumference = 2 * Math.PI * radius;

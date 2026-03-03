@@ -15,7 +15,22 @@
             </p>
         </div>
 
-        <!-- Difficulty -->
+        <!-- NEW: Language Selector (ADDITIONAL FEATURE) -->
+        <div class="mb-8">
+            <label class="block text-lg font-semibold mb-3 text-indigo-300">
+                Select Programming Language
+            </label>
+
+            <div class="flex gap-4 flex-wrap">
+                <button type="button" onclick="setLanguage('python')" class="px-5 py-2 bg-gray-700 rounded-xl hover:bg-indigo-600 transition">🐍 Python</button>
+                <button type="button" onclick="setLanguage('cpp')" class="px-5 py-2 bg-gray-700 rounded-xl hover:bg-indigo-600 transition">⚙ C++</button>
+                <button type="button" onclick="setLanguage('java')" class="px-5 py-2 bg-gray-700 rounded-xl hover:bg-indigo-600 transition">☕ Java</button>
+            </div>
+
+            <input type="hidden" id="selectedLanguage" value="python">
+        </div>
+
+        <!-- Difficulty (UNCHANGED) -->
         <div class="mb-8">
             <label class="block text-lg font-semibold mb-3 text-indigo-300">
                 Select Difficulty
@@ -28,14 +43,14 @@
             </select>
         </div>
 
-        <!-- Timer -->
+        <!-- Timer (UNCHANGED) -->
         <div class="mb-6 hidden" id="timerContainer">
             <p class="text-lg font-semibold text-red-400">
                 ⏳ Time Remaining: <span id="timer">00:00</span>
             </p>
         </div>
 
-        <!-- Start Button -->
+        <!-- Start Button (UNCHANGED) -->
         <div class="mb-10 text-center">
             <button id="startBtn"
                     type="button"
@@ -44,7 +59,7 @@
             </button>
         </div>
 
-        <!-- FORM -->
+        <!-- FORM (UNCHANGED STRUCTURE) -->
         <form method="post" action="/codelab-submit" class="space-y-8">
 
             <input type="hidden" name="difficulty" id="difficultyInput">
@@ -66,7 +81,25 @@
                 </select>
             </div>
 
-            <!-- Code Area -->
+            <!-- NEW: Starter Template (ADDED) -->
+            <div>
+                <label class="block text-lg font-semibold mb-3 text-indigo-300">
+                    Starter Template
+                </label>
+
+                <textarea id="starterTemplate"
+                          rows="6"
+                          readonly
+                          class="w-full p-5 bg-gray-900 border border-gray-700 rounded-2xl font-mono text-green-400"></textarea>
+
+                <button type="button"
+                        onclick="downloadTemplate()"
+                        class="mt-3 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl transition">
+                    Download Template
+                </button>
+            </div>
+
+            <!-- Code Area (UNCHANGED) -->
             <div>
                 <label class="block text-lg font-semibold mb-3 text-indigo-300">
                     Write Your Solution
@@ -101,16 +134,14 @@
 
 </div>
 
-<!-- Learning Resources -->
+<!-- Learning Resources (UNCHANGED) -->
 <div class="mt-16 border-t border-gray-700 pt-10">
-
     <h3 class="text-2xl font-bold text-indigo-400 mb-6 text-center">
         📚 Coding Resources & Practice Platforms
     </h3>
 
     <div class="grid md:grid-cols-3 gap-8 text-sm">
 
-        <!-- Practice Platforms -->
         <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
             <h4 class="font-semibold text-indigo-300 mb-3">💻 Practice Platforms</h4>
             <ul class="space-y-2 text-gray-400">
@@ -121,7 +152,6 @@
             </ul>
         </div>
 
-        <!-- Online Compilers -->
         <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
             <h4 class="font-semibold text-indigo-300 mb-3">⚙ Online Compilers</h4>
             <ul class="space-y-2 text-gray-400">
@@ -131,85 +161,122 @@
             </ul>
         </div>
 
-        <!-- YouTube Prep -->
         <div class="bg-gray-800 p-6 rounded-2xl shadow-lg">
             <h4 class="font-semibold text-indigo-300 mb-3">🎥 Interview Prep Channels</h4>
             <ul class="space-y-2 text-gray-400">
-                <li>
-                    <a href="https://www.youtube.com/results?search_query=abdul+bari+algorithms"
-                        target="_blank"
-                        class="hover:text-white">
-                        Abdul Bari (Algorithms)
-                    </a>
-               </li>
+                <li><a href="https://www.youtube.com/results?search_query=abdul+bari+algorithms" target="_blank" class="hover:text-white">Abdul Bari</a></li>
                 <li><a href="https://www.youtube.com/c/KunalKushwaha" target="_blank" class="hover:text-white">Kunal Kushwaha</a></li>
                 <li><a href="https://www.youtube.com/c/TakeUForward" target="_blank" class="hover:text-white">Take U Forward</a></li>
             </ul>
         </div>
 
     </div>
-
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+/* =========================
+   ORIGINAL TIMER SCRIPT
+   ========================= */
 
-    let timeMap = {
-        easy: 0,
-        medium: 1200,
-        hard: 1800
-    };
+let timeMap = { easy: 0, medium: 1200, hard: 1800 };
+let timerInterval;
+let remainingTime = 0;
+let started = false;
 
-    let timerInterval;
-    let remainingTime = 0;
-    let started = false;
+const startBtn = document.getElementById("startBtn");
+const difficultySelect = document.getElementById("difficultySelect");
+const difficultyInput = document.getElementById("difficultyInput");
+const codeArea = document.getElementById("codeArea");
+const timerContainer = document.getElementById("timerContainer");
+const timerDisplay = document.getElementById("timer");
 
-    const startBtn = document.getElementById("startBtn");
-    const difficultySelect = document.getElementById("difficultySelect");
-    const difficultyInput = document.getElementById("difficultyInput");
-    const codeArea = document.getElementById("codeArea");
-    const timerContainer = document.getElementById("timerContainer");
-    const timerDisplay = document.getElementById("timer");
+function startTimer(seconds) {
+    remainingTime = seconds;
+    timerInterval = setInterval(function () {
 
-    function startTimer(seconds) {
-        remainingTime = seconds;
-        timerInterval = setInterval(function () {
+        let minutes = Math.floor(remainingTime / 60);
+        let secondsLeft = remainingTime % 60;
 
-            let minutes = Math.floor(remainingTime / 60);
-            let secondsLeft = remainingTime % 60;
+        timerDisplay.innerText =
+            String(minutes).padStart(2, '0') + ":" +
+            String(secondsLeft).padStart(2, '0');
 
-            timerDisplay.innerText =
-                String(minutes).padStart(2, '0') + ":" +
-                String(secondsLeft).padStart(2, '0');
-
-            if (remainingTime <= 0) {
-                clearInterval(timerInterval);
-            }
-
-            remainingTime--;
-        }, 1000);
-    }
-
-    startBtn.addEventListener("click", function () {
-        if (started) return;
-
-        let selected = difficultySelect.value;
-        difficultyInput.value = selected;
-
-        codeArea.disabled = false;
-        codeArea.focus();
-
-        if (timeMap[selected] > 0) {
-            timerContainer.classList.remove("hidden");
-            startTimer(timeMap[selected]);
+        if (remainingTime <= 0) {
+            clearInterval(timerInterval);
         }
 
-        startBtn.innerText = "Running...";
-        startBtn.classList.add("opacity-50");
-        started = true;
-    });
+        remainingTime--;
+    }, 1000);
+}
 
+startBtn.addEventListener("click", function () {
+    if (started) return;
+
+    let selected = difficultySelect.value;
+    difficultyInput.value = selected;
+
+    codeArea.disabled = false;
+    codeArea.focus();
+
+    if (timeMap[selected] > 0) {
+        timerContainer.classList.remove("hidden");
+        startTimer(timeMap[selected]);
+    }
+
+    startBtn.innerText = "Running...";
+    startBtn.classList.add("opacity-50");
+    started = true;
 });
+
+/* =========================
+   NEW LANGUAGE TEMPLATE SCRIPT
+   ========================= */
+
+const templates = {
+    python: `def solve():
+    # Write your logic here
+    pass`,
+
+    cpp: `#include <iostream>
+using namespace std;
+
+int main(){
+    // Write your logic
+    return 0;
+}`,
+
+    java: `public class Main {
+    public static void main(String[] args){
+        // Write your logic
+    }
+}`
+};
+
+function setLanguage(lang) {
+    document.getElementById("selectedLanguage").value = lang;
+    document.getElementById("starterTemplate").value = templates[lang];
+}
+
+function downloadTemplate() {
+    const lang = document.getElementById("selectedLanguage").value;
+    const content = templates[lang];
+
+    let extension = "txt";
+    if (lang === "python") extension = "py";
+    if (lang === "cpp") extension = "cpp";
+    if (lang === "java") extension = "java";
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "starter_template." + extension;
+    a.click();
+}
+
+window.onload = function() {
+    setLanguage("python");
+};
+
 </script>
 
 {% endblock %}

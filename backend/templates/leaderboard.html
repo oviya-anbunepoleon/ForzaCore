@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="min-h-screen bg-gray-900 text-white py-12 px-6">
+
+    <div class="max-w-5xl mx-auto bg-gray-800 rounded-3xl shadow-2xl p-10 relative">
+
+        <!-- Title -->
+        <h2 class="text-4xl font-bold text-yellow-400 text-center mb-6">
+            🏆 Global Leaderboard
+        </h2>
+
+        <!-- Your Rank Badge -->
+        {% if current_rank %}
+        <div class="text-center mb-8">
+            <div class="inline-block bg-indigo-600 px-6 py-3 rounded-full text-lg font-bold shadow-lg animate-pulse">
+                🎯 You are Rank #{{ current_rank }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if users|length == 0 %}
+            <p class="text-center text-gray-400">No players yet.</p>
+        {% else %}
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-600 text-yellow-300 text-lg">
+                        <th class="py-4">Rank</th>
+                        <th class="py-4">Username</th>
+                        <th class="py-4">Level XP</th>
+                        <th class="py-4">CodeLab XP</th>
+                        <th class="py-4">Total XP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="border-b border-gray-700 transition duration-300 hover:bg-gray-700
+                        {% if user.username == current_user %}
+                            bg-indigo-700 text-white font-semibold scale-105
+                        {% endif %}
+                    ">
+                        <td class="py-4 text-xl">
+                            {% if user.rank == 1 %}
+                                👑
+                            {% elif user.rank == 2 %}
+                                🥈
+                            {% elif user.rank == 3 %}
+                                🥉
+                            {% else %}
+                                {{ user.rank }}
+                            {% endif %}
+                        </td>
+                        <td class="py-4">{{ user.username }}</td>
+                        <td class="py-4">{{ user.level_xp }}</td>
+                        <td class="py-4">{{ user.codelab_xp }}</td>
+                        <td class="py-4 text-yellow-400 font-bold text-lg">
+                            {{ user.total_xp }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% endif %}
+
+        <!-- Back Button -->
+        <div class="text-center mt-10">
+            <a href="/dashboard"
+               class="bg-indigo-600 hover:bg-indigo-700 px-8 py-3 rounded-xl font-semibold transition transform hover:scale-105 shadow-lg">
+                ← Back to Dashboard
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
