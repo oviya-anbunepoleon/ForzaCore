@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 
 # 🔥 Paste your OpenRouter key directly for stability
-API_KEY = "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"
+API_KEY = ""
 
 llm = ChatOpenAI(
     model="openai/gpt-4o-mini",   # stable model
