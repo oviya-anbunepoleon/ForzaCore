@@ -1,43 +1,42 @@
-from langchain_openai import ChatOpenAI
+def generate_ai_report(
+    role,
+    analytical,
+    creative,
+    communication,
+    coding,
+    problem_solving
+):
 
-# 🔥 Paste your OpenRouter key directly for stability
-API_KEY = "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"
+    return f"""
+    🚀 Career Intelligence Report
 
-llm = ChatOpenAI(
-    model="openai/gpt-4o-mini",   # stable model
-    api_key=API_KEY,
-    base_url="https://openrouter.ai/api/v1",
-    temperature=0.4
-)
+    Role: {role}
 
-def generate_ai_report(role, analytical, creative, communication, coding, confidence):
-    try:
-        prompt = f"""
-You are a professional AI Career Mentor.
+    🔥 Strengths:
+    - Analytical: {analytical}
+    - Creative: {creative}
+    - Communication: {communication}
+    - Coding: {coding}
+    - Problem Solving: {problem_solving}
 
-Student Profile:
-Role: {role}
-Analytical Score: {analytical}
-Creative Score: {creative}
-Communication Score: {communication}
-Coding Score: {coding}
-Confidence: {confidence}%
+    📈 6 Month Roadmap:
+    Month 1-2: Strengthen core fundamentals
+    Month 3-4: Build 2 real-world projects
+    Month 5: Learn deployment & optimization
+    Month 6: Build portfolio & apply to internships
 
-Generate structured output with:
+    🛠 Recommended Tools:
+    - Python
+    - Git & GitHub
+    - FastAPI
+    - SQL / MongoDB
+    - Docker
 
-1. Why this role suits them
-2. Strength analysis
-3. Areas to focus
-4. 6-month roadmap (month-wise)
-5. Recommended tools & technologies
-6. 3 strong project ideas
+    💡 Suggested Projects:
+    - AI Resume Analyzer
+    - Real-time Chat Application
+    - Data Dashboard
 
-Keep it structured, clear, and motivating.
-"""
-
-        response = llm.invoke(prompt)
-        return response.content
-
-    except Exception as e:
-        print("AI ERROR:", e)
-        return "AI service temporarily unavailable."
+    🎯 Final Advice:
+    Stay consistent. Skill stacking wins hackathons.
+    """

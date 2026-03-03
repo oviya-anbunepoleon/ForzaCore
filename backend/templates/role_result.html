@@ -47,7 +47,29 @@
         </h4>
 
         <div class="whitespace-pre-wrap text-gray-700 leading-relaxed text-sm">
-            {{ ai_report }}
+            <div class="bg-indigo-50 p-8 rounded-2xl shadow-lg mb-10 text-left">
+    <h4 class="text-xl font-bold mb-4">🧠 AI Insight Engine</h4>
+    <div id="aiContent">
+        Generating AI Insights...
+    </div>
+</div>
+
+<script>
+fetch("/generate-ai")
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById("aiContent").innerText = data.data;
+        } else {
+            document.getElementById("aiContent").innerText =
+                "AI service temporarily unavailable.";
+        }
+    })
+    .catch(() => {
+        document.getElementById("aiContent").innerText =
+            "AI service temporarily unavailable.";
+    });
+</script>
         </div>
 
     </div>

@@ -141,30 +141,42 @@ def codelab_page(request: Request):
         "questions": codelab_questions
     })
 
-
 @app.post("/codelab-submit")
-def codelab_submit(request: Request,
-                   difficulty: str = Form(...),
-                   question_id: int = Form(...),
-                   code_answer: str = Form(...)):
+def codelab_submit(
+    request: Request,
+    difficulty: str = Form(...),
+    question_id: int = Form(...),
+    code_answer: str = Form(None)   # 👈 changed here
+):
+
+    if not code_answer or len(code_answer.strip()) < 5:
+        feedback = "⚠ Please write a valid solution before submitting."
+
+        return templates.TemplateResponse("codelab.html", {
+            "request": request,
+            "questions": codelab_questions,
+            "feedback": feedback
+        })
 
     xp_map = {"easy": 20, "medium": 40, "hard": 60}
 
-    if len(code_answer.strip()) < 20:
-        earned_xp = 0
-        feedback = "Solution too short."
-    else:
-        earned_xp = xp_map.get(difficulty, 0)
-        feedback = f"You earned {earned_xp} XP!"
+    earned_xp = xp_map.get(difficulty, 0)
 
-    current_xp = request.session.get("codelab_xp", 0)
-    request.session["codelab_xp"] = current_xp + earned_xp
+    request.session["codelab_xp"] = request.session.get("codelab_xp", 0) + earned_xp
+
+    for user in leaderboard_data:
+        if user["username"] == request.session.get("username"):
+            user["codelab_xp"] = request.session.get("codelab_xp")
+
+    feedback = f"✅ You earned {earned_xp} XP!"
 
     return templates.TemplateResponse("codelab.html", {
         "request": request,
         "questions": codelab_questions,
         "feedback": feedback
     })
+
+
 # =====================================================
 # ASSESSMENT
 # =====================================================
@@ -210,14 +222,39 @@ def communication_submit(request: Request,
 
 @app.get("/coding", response_class=HTMLResponse)
 def coding_page(request: Request):
-    return templates.TemplateResponse("coding.html", {"request": request})
+
+    coding_question = """
+    You are given an array of integers.
+
+    Write the logic to find the second largest element efficiently.
+
+    Requirements:
+    - Do NOT sort the array.
+    - Try to achieve O(n) time complexity.
+    - Explain your logic clearly in structured steps.
+    """
+
+    return templates.TemplateResponse("coding.html", {
+        "request": request,
+        "coding_question": coding_question
+    })
+
 
 @app.post("/coding-result")
 def coding_submit(request: Request,
                   text_answer: str = Form(...),
                   mcq_answer: int = Form(...)):
 
-    score = len(text_answer)//40
+    # Basic scoring logic
+    score = 0
+
+    # Logic evaluation based on answer length
+    if len(text_answer.strip()) >= 40:
+        score += 2
+    elif len(text_answer.strip()) >= 20:
+        score += 1
+
+    # MCQ evaluation
     if mcq_answer == 1:
         score += 1
 
@@ -227,9 +264,10 @@ def coding_submit(request: Request,
     creative = request.session.get("creative", 0)
     comm = request.session.get("communication_score", 0)
 
-    ai_score = analytical*3 + score*4
-    fs_score = creative*3 + comm*4
-    da_score = analytical*4 + comm*2
+    # Weighted role scoring
+    ai_score = analytical * 3 + score * 4
+    fs_score = creative * 3 + comm * 4
+    da_score = analytical * 4 + comm * 2
 
     scores = {
         "AI Engineer": ai_score,
@@ -245,9 +283,8 @@ def coding_submit(request: Request,
     request.session["confidence"] = confidence
     request.session["level_xp"] = 0
 
-    request.session.pop("ai_report", None)
-
     return RedirectResponse("/loading", status_code=303)
+
 
 # =====================================================
 # LOADING PAGE
@@ -295,37 +332,51 @@ def role_result(request: Request):
 # =====================================================
 # ROLE RESULT (AI POWERED)
 # =====================================================
+# =====================================================
+# ROLE RESULT
+# =====================================================
 
 @app.get("/role-result", response_class=HTMLResponse)
 def role_result(request: Request):
 
-    role = request.session.get("role")
-    confidence = request.session.get("confidence", 0)
+    return templates.TemplateResponse("role_result.html", {
+        "request": request,
+        "role": request.session.get("role"),
+        "confidence": request.session.get("confidence", 0),
+        "analytical": request.session.get("analytical", 0),
+        "creative": request.session.get("creative", 0),
+        "communication": request.session.get("communication_score", 0),
+        "coding": request.session.get("coding_score", 0),
+        "problem_solving": request.session.get("level_xp", 0)
+    })
 
+from fastapi.responses import JSONResponse
+
+@app.get("/generate-ai")
+def generate_ai(request: Request):
+
+    role = request.session.get("role")
     analytical = request.session.get("analytical", 0)
     creative = request.session.get("creative", 0)
     communication = request.session.get("communication_score", 0)
     coding = request.session.get("coding_score", 0)
+    problem_solving = request.session.get("level_xp", 0)
 
-    if "ai_report" not in request.session:
+    try:
         ai_text = generate_ai_report(
-            role, analytical, creative, communication, coding, confidence
+            role,
+            analytical,
+            creative,
+            communication,
+            coding,
+            problem_solving
         )
-        request.session["ai_report"] = ai_text
-    else:
-        ai_text = request.session["ai_report"]
 
-    return templates.TemplateResponse("role_result.html", {
-        "request": request,
-        "role": role,
-        "confidence": confidence,
-        "ai_report": ai_text
-    })
+        return JSONResponse({"success": True, "data": ai_text})
 
-# =====================================================
-# (Remaining LEVEL, FINAL, LEADERBOARD, PDF
-#  sections remain EXACTLY SAME as your original)
-# =====================================================
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)})
+
 
 
 # =====================================================
